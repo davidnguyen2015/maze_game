@@ -1,5 +1,3 @@
-# main.py
-
 import pygame
 import sys
 import random
@@ -7,7 +5,10 @@ import time
 from maze_generator import generate_maze
 from display import draw_maze, draw_mouse, draw_pizza, draw_fireworks, draw_text
 from mouse import Mouse
-from ai import AI
+from dijkstra import Dijkstra
+from bellman_ford import BellmanFord
+from bfs import BFS
+from dfs import DFS
 
 pygame.init()
 
@@ -36,24 +37,26 @@ def init_game():
     return maze, pizza_pos, mouse, fireworks, start, goal
 
 def reset_game():
-    global maze, pizza_pos, mouse, fireworks, start, goal, start_time, path_length, won, win_time, ai_mode, ai
+    global maze, pizza_pos, mouse, fireworks, start, goal, start_time, step, won, win_time, ai_mode, ai_menthod, ai
     maze, pizza_pos, mouse, fireworks, start, goal = init_game()
     start_time = time.time()
-    path_length = 0
+    step = 0
     won = False
     win_time = None
     ai_mode = False
+    ai_menthod = ''
     ai = None
 
 maze, pizza_pos, mouse, fireworks, start, goal = init_game()
 start_time = time.time()
-path_length = 0
+step = 0
 
 clock = pygame.time.Clock()
 paused = False
 won = False
 win_time = None
 ai_mode = False
+ai_menthod = ''
 ai = None
 
 def trigger_fireworks(pos):
@@ -74,10 +77,31 @@ while True:
                 paused = not paused
             if event.key == pygame.K_r:
                 reset_game()
-            if event.key == pygame.K_a:
+
+            #1 -> dijkstra
+            #2 -> bellman_ford
+            #3 -> bfs
+            #4 -> dfs
+            if event.key == pygame.K_1:
                 ai_mode = not ai_mode
+                ai_menthod = "Dijkstra"
                 if ai_mode:
-                    ai = AI(maze, start, goal)
+                    ai = Dijkstra(maze, start, goal)
+            if event.key == pygame.K_2:
+                ai_mode = not ai_mode
+                ai_menthod = "Bellman Ford"
+                if ai_mode:
+                    ai = BellmanFord(maze, start, goal)
+            if event.key == pygame.K_3:
+                ai_mode = not ai_mode
+                ai_menthod = "Breadth-First Search"
+                if ai_mode:
+                    ai = BFS(maze, start, goal)
+            if event.key == pygame.K_4:
+                ai_mode = not ai_mode
+                ai_menthod = "Depth-First Search"
+                if ai_mode:
+                    ai = DFS(maze, start, goal)
     
     if not paused:
         # Update time only if not paused
@@ -89,20 +113,20 @@ while True:
                 if next_move:
                     dx, dy = next_move[0] - mouse.x, next_move[1] - mouse.y
                     mouse.move(dx, dy, maze)
-                    path_length += 1
+                    step += 1
             else:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_UP]:
-                    path_length += 1
+                    step += 1
                     mouse.move(0, -1, maze)
                 if keys[pygame.K_DOWN]:
-                    path_length += 1
+                    step += 1
                     mouse.move(0, 1, maze)
                 if keys[pygame.K_LEFT]:
-                    path_length += 1
+                    step += 1
                     mouse.move(-1, 0, maze)
                 if keys[pygame.K_RIGHT]:
-                    path_length += 1
+                    step += 1
                     mouse.move(1, 0, maze)
 
             # Check if mouse has reached pizza
@@ -123,11 +147,14 @@ while True:
     screen.fill((255, 255, 255))
     # Draw information panel
     pygame.draw.rect(screen, (200, 200, 200), (0, 0, WIDTH, INFO_HEIGHT))
-    draw_text(screen, f'Time: {elapsed_time:.2f}s' if not paused else 'Paused', 10, 10, 30)
-    draw_text(screen, f'Length: {path_length}', 10, 50, 30)
+    #print(f'Time: {elapsed_time:.1f}s')
+    draw_text(screen, f'Time: {elapsed_time:.1f}s' if not paused else 'Paused', 10, 10, 30)
+    draw_text(screen, f'Step: {step}', 10, 50, 30)
     
     if paused:
         draw_text(screen, "Paused", WIDTH // 2, INFO_HEIGHT // 2, 55)
+    else:
+        draw_text(screen, ai_menthod, WIDTH // 2, INFO_HEIGHT // 2, 55)
     
     if won:
         draw_text(screen, "You Won!", WIDTH // 2, INFO_HEIGHT // 2 - 50, 55)

@@ -1,5 +1,3 @@
-# display.py
-
 import pygame
 
 def draw_maze(surface, maze, cell_size, offset_y=0):

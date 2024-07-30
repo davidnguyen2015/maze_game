@@ -1,5 +1,3 @@
-# maze_generator.py
-
 import random
 
 def generate_maze(width, height):

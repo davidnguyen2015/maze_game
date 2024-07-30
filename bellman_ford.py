@@ -1,8 +1,4 @@
-# ai.py
-
-from collections import deque
-
-class AI:
+class BellmanFord:
     def __init__(self, maze, start, goal):
         self.maze = maze
         self.start = start
@@ -11,17 +7,22 @@ class AI:
         self.find_path()
 
     def find_path(self):
-        queue = deque([self.start])
+        distances = {self.start: 0}
         came_from = {self.start: None}
-        while queue:
-            current = queue.popleft()
-            if current == self.goal:
-                self.path = self.reconstruct_path(came_from, current)
-                return
-            for neighbor in self.get_neighbors(current):
-                if neighbor not in came_from:
-                    queue.append(neighbor)
-                    came_from[neighbor] = current
+
+        for _ in range(len(self.maze) * len(self.maze[0]) - 1):
+            for y in range(len(self.maze)):
+                for x in range(len(self.maze[0])):
+                    current = (x, y)
+                    if current in distances:
+                        for neighbor in self.get_neighbors(current):
+                            distance = distances[current] + 1
+                            if neighbor not in distances or distance < distances[neighbor]:
+                                distances[neighbor] = distance
+                                came_from[neighbor] = current
+
+        if self.goal in distances:
+            self.path = self.reconstruct_path(came_from, self.goal)
 
     def get_neighbors(self, pos):
         x, y = pos
